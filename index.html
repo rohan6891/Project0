@@ -137,3 +137,59 @@ kubectl delete deployment mynginx
 minikube stop
 minikube delete
 ──────────────────────────────────────────────
+
+
+
+
+    
+pipeline { 
+    agent any
+
+    tools{
+        jdk 'JDK21'               
+        maven 'MAVEN_HOME'        
+    } 
+
+    environment {
+        MVN = "${tool 'MAVEN_HOME'}/bin/mvn"
+        REPO = "https://github.com/Varshith271105/mavenjava"
+        APP = "mavenjava"
+    }
+
+    stages { 
+
+        stage('Git Clone & Clean') { 
+            steps { 
+                echo "Cleaning old workspace..."
+                sh "rm -rf ${APP} || true"
+
+                echo "Cloning repo..."
+                sh "git clone ${REPO}"
+            } 
+        } 
+
+        stage('Maven Clean') { 
+            steps { 
+                sh "${MVN} clean -f ${APP}/pom.xml"
+            } 
+        } 
+
+        stage('Install') { 
+            steps { 
+                sh "${MVN} install -f ${APP}/pom.xml"
+            } 
+        } 
+
+        stage('Test') { 
+            steps { 
+                sh "${MVN} test -f ${APP}/pom.xml"
+            } 
+        } 
+
+        stage('Package') { 
+            steps { 
+                sh "${MVN} package -f ${APP}/pom.xml"
+            }
+        }
+    }
+}
