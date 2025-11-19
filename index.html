@@ -44,3 +44,96 @@
         
     </body>
 </html>
+
+
+──────────────────────────────────────────────
+STEP 1 — START THE CLUSTER
+──────────────────────────────────────────────
+minikube start --driver=docker
+
+# Check if cluster is running
+minikube status
+
+# See nodes in the cluster
+kubectl get nodes
+──────────────────────────────────────────────
+STEP 2 — CREATE A DEPLOYMENT
+──────────────────────────────────────────────
+# Create an nginx deployment
+kubectl create deployment mynginx --image=nginx
+
+# Check deployments
+kubectl get deployments
+
+# Check pods created by the deployment
+kubectl get pods
+──────────────────────────────────────────────
+STEP 3 — EXPOSE THE DEPLOYMENT AS A SERVICE
+──────────────────────────────────────────────
+# Expose nginx on port 80 (service) → port 80 (pod)
+kubectl expose deployment mynginx --port=80 --target-port=80
+
+# View service
+kubectl get svc
+
+# Get service YAML
+kubectl get svc mynginx -o yaml
+──────────────────────────────────────────────
+STEP 4 — ACCESS THE SERVICE
+──────────────────────────────────────────────
+# Get Minikube service URL
+minikube service mynginx --url
+
+# OR port forward to local machine
+kubectl port-forward svc/mynginx 8081:80
+──────────────────────────────────────────────
+STEP 5 — CHECK LOGS & DETAILS
+──────────────────────────────────────────────
+# Describe pod
+kubectl describe pod <pod-name>
+
+# View logs
+kubectl logs <pod-name>
+──────────────────────────────────────────────
+STEP 6 — SCALE THE DEPLOYMENT
+──────────────────────────────────────────────
+# Increase replicas to 4
+kubectl scale deployment mynginx --replicas=4
+
+# Verify new pods
+kubectl get pods
+──────────────────────────────────────────────
+STEP 7 — UPDATE THE IMAGE (ROLLING UPDATE)
+──────────────────────────────────────────────
+# Update nginx to latest image
+kubectl set image deployment/mynginx nginx=nginx:latest
+
+# Check rollout progress
+kubectl rollout status deployment/mynginx
+
+# If update failed → rollback
+kubectl rollout undo deployment/mynginx
+──────────────────────────────────────────────
+STEP 8 — EXEC INTO A POD (OPTIONAL)
+──────────────────────────────────────────────
+kubectl exec -it <pod-name> -- sh
+──────────────────────────────────────────────
+STEP 9 — DEBUGGING COMMANDS (OPTIONAL)
+──────────────────────────────────────────────
+# Events
+kubectl get events --sort-by=.metadata.creationTimestamp
+
+# Pod details in YAML
+kubectl get pod <pod-name> -o yaml
+
+# Ports inside the container
+kubectl exec -it <pod-name> -- netstat -tlnp
+──────────────────────────────────────────────
+STEP 10 — CLEANUP
+──────────────────────────────────────────────
+kubectl delete svc mynginx
+kubectl delete deployment mynginx
+
+minikube stop
+minikube delete
+──────────────────────────────────────────────
